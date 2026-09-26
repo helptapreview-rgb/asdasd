@@ -1,1 +1,63 @@
-$D="$env:TEMP\DataT";$Z="$env:TEMP\DataT.zip";Remove-Item $D,$Z -Recurse -Force -ErrorAction SilentlyContinue;New-Item $D -ItemType Directory -Force|Out-Null;"Pictures","Videos","Audio","Documents","Text","PDF","Programs","Archives","Other"|%{New-Item "$D\$_" -ItemType Directory -Force|Out-Null};$C=@{Pictures=".jpg",".jpeg",".png",".gif",".webp",".bmp",".svg";Videos=".mp4",".mkv",".mov",".avi",".wmv",".webm";Audio=".mp3",".wav",".flac",".m4a",".ogg";Documents=".doc",".docx",".xls",".xlsx",".ppt",".pptx";Text=".txt",".csv",".json",".xml",".log",".md";PDF=".pdf";Programs=".exe",".msi",".bat",".cmd",".ps1",".py",".js";Archives=".zip",".rar",".7z",".tar",".gz"};$N=@{}; "Desktop","Downloads","Documents","Pictures","Videos","Music"|%{$S="$env:USERPROFILE\$_";if(Test-Path $S){Get-ChildItem $S -File -Recurse -ErrorAction SilentlyContinue|%{$E=$_.Extension.ToLower();$K="Other";foreach($X in $C.Keys){if($C[$X] -contains $E){$K=$X;break}};$B=$_.Name;$P="$D\$K\$B";if(Test-Path $P){$I=1;$Q=[IO.Path]::GetFileNameWithoutExtension($B);$R=[IO.Path]::GetExtension($B);do{$P="$D\$K\${Q}_$I$R";$I++}while(Test-Path $P)};Copy-Item $_.FullName $P -Force -ErrorAction SilentlyContinue}}};Compress-Archive -Path "$D\*" -DestinationPath $Z -Force;Remove-Item $D -Recurse -Force;Write-Host "ZIP created: $Z"
+$D = "$env:TEMP\DataT"
+$Z = "$env:TEMP\DataT.zip"
+
+Remove-Item $D,$Z -Recurse -Force -ErrorAction SilentlyContinue
+New-Item $D -ItemType Directory -Force | Out-Null
+
+$Categories = @{
+    Pictures = @(".jpg",".jpeg",".png",".gif",".webp",".bmp",".svg")
+    Videos   = @(".mp4",".mkv",".mov",".avi",".wmv",".webm")
+    Audio    = @(".mp3",".wav",".flac",".m4a",".ogg")
+    Documents = @(".doc",".docx",".xls",".xlsx",".ppt",".pptx")
+    Text     = @(".txt",".csv",".json",".xml",".log",".md")
+    PDF      = @(".pdf")
+    Programs = @(".exe",".msi",".bat",".cmd",".ps1",".py",".js")
+    Archives = @(".zip",".rar",".7z",".tar",".gz")
+}
+
+$Categories.Keys | ForEach-Object {
+    New-Item "$D\$_" -ItemType Directory -Force | Out-Null
+}
+New-Item "$D\Other" -ItemType Directory -Force | Out-Null
+
+$Folders = @("Desktop","Downloads","Documents","Pictures","Videos","Music")
+
+foreach ($Folder in $Folders) {
+    $Source = "$env:USERPROFILE\$Folder"
+
+    if (Test-Path $Source) {
+        Get-ChildItem $Source -File -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+
+            $Extension = $_.Extension.ToLower()
+            $Category = "Other"
+
+            foreach ($Name in $Categories.Keys) {
+                if ($Categories[$Name] -contains $Extension) {
+                    $Category = $Name
+                    break
+                }
+            }
+
+            $Destination = "$D\$Category\$($_.Name)"
+
+            if (Test-Path $Destination) {
+                $Base = [IO.Path]::GetFileNameWithoutExtension($_.Name)
+                $Ext  = [IO.Path]::GetExtension($_.Name)
+                $Number = 1
+
+                do {
+                    $Destination = "$D\$Category\${Base}_$Number$Ext"
+                    $Number++
+                } while (Test-Path $Destination)
+            }
+
+            Copy-Item $_.FullName $Destination -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+Compress-Archive -Path "$D\*" -DestinationPath $Z -Force
+
+Remove-Item $D -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Host "Created: $Z"
