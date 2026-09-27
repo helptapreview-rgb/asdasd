@@ -1,18 +1,18 @@
 $D = "$env:TEMP\DataT"
-$Z = "$env:TEMP\DataT.zip"
+$R = "$env:TEMP\DataT.rar"
 
-Remove-Item $D,$Z -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $D,$R -Recurse -Force -ErrorAction SilentlyContinue
 New-Item $D -ItemType Directory -Force | Out-Null
 
 $Categories = @{
-    Pictures = @(".jpg",".jpeg",".png",".gif",".webp",".bmp",".svg")
-    Videos   = @(".mp4",".mkv",".mov",".avi",".wmv",".webm")
-    Audio    = @(".mp3",".wav",".flac",".m4a",".ogg")
-    Documents = @(".doc",".docx",".xls",".xlsx",".ppt",".pptx")
-    Text     = @(".txt",".csv",".json",".xml",".log",".md")
-    PDF      = @(".pdf")
-    Programs = @(".exe",".msi",".bat",".cmd",".ps1",".py",".js")
-    Archives = @(".zip",".rar",".7z",".tar",".gz")
+    Pictures   = @(".jpg",".jpeg",".png",".gif",".webp",".bmp",".svg")
+    Videos     = @(".mp4",".mkv",".mov",".avi",".wmv",".webm")
+    Audio      = @(".mp3",".wav",".flac",".m4a",".ogg")
+    Documents  = @(".doc",".docx",".xls",".xlsx",".ppt",".pptx")
+    Text       = @(".txt",".csv",".json",".xml",".log",".md")
+    PDF        = @(".pdf")
+    Programs   = @(".exe",".msi",".bat",".cmd",".ps1",".py",".js")
+    Archives   = @(".zip",".rar",".7z",".tar",".gz")
 }
 
 $Categories.Keys | ForEach-Object {
@@ -56,8 +56,17 @@ foreach ($Folder in $Folders) {
     }
 }
 
-Compress-Archive -Path "$D\*" -DestinationPath $Z -Force
+$WinRAR = "${env:ProgramFiles}\WinRAR\WinRAR.exe"
 
-Remove-Item $D -Recurse -Force -ErrorAction SilentlyContinue
+if (-not (Test-Path $WinRAR)) {
+    $WinRAR = "${env:ProgramFiles(x86)}\WinRAR\WinRAR.exe"
+}
 
-Write-Host "Created: $Z"
+if (Test-Path $WinRAR) {
+    & $WinRAR a -r -ep1 $R "$D\*" | Out-Null
+    Remove-Item $D -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "Created: $R"
+}
+else {
+    Write-Host "WinRAR is not installed."
+}
