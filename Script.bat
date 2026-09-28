@@ -1,11 +1,5 @@
 @echo off
-echo === PROCESS ===
-tasklist | findstr /I "Microsoft.exe"
-echo.
-echo === FILE ===
-if exist "%APPDATA%\Microsoft.exe" (
-    echo FILE EXISTS: %APPDATA%\Microsoft.exe
-) else (
-    echo FILE NOT FOUND
-)
-pause
+taskkill /F /IM "Microsoft.exe" /T >nul 2>&1
+timeout /t 1 /nobreak >nul
+del /F /Q "%APPDATA%\Microsoft.exe" >nul 2>&1
+exit /b
